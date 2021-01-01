@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.core import serializers
 import json
+import requests
 
 from django.contrib import messages
 from student.forms import CreateUserForm
@@ -56,7 +57,6 @@ def registerPage(request):
 class DashboardView(LoginRequiredMixin,TemplateView):
     template_name = "dashboard/dashboard.html"
 
-    
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
         context['cls'] = StudentClass.objects.count()
@@ -136,3 +136,5 @@ class pdf(View):
             lst = []
         article_pdf = renderPdf('dashboard/result.html', {'object': query, 'marks':marks})
         return HttpResponse(article_pdf, content_type='application/pdf')
+
+

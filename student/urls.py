@@ -6,6 +6,7 @@ from student.controllers.student_controller import StudentListView,StudentCreate
 from student.controllers.subject_controller import SubjectListView,SubjectCreateView,SubjectUpdateView,SubjectDeleteView
 from student.controllers.com_subj_class_controller import SubjectCombinationListView,SubjectCombinationDeleteView,SubjectCombinationUpdateView,SubjectCombinationCreateView
 from student.controllers.ID_controller import IDCreateView,IDDeleteView,IDListView,IDUpdateView
+from student.controllers.calender_controller import calender_Holiday
 
 urlpatterns = [
     path('',DashboardView.as_view(), name='dashboard'),
@@ -39,4 +40,5 @@ urlpatterns = [
     path('student/id/create/', IDCreateView.as_view(), name='id_create'),
     path('student/id/update/<int:pk>',IDUpdateView.as_view(), name='id_update'),
     path('student/id/delete/<int:pk>', IDDeleteView.as_view(), name='id_delete'),
+    path('calendar/', calender_Holiday, name='calendar'),
 ]
