@@ -2,6 +2,9 @@ from xhtml2pdf import pisa
 from django.template.loader import get_template
 from django.http import HttpResponse
 from io import BytesIO
+from django.core.mail import EmailMessage
+from django.conf import settings
+from django.template.loader import render_to_string
 from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -11,16 +14,15 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import authenticate, login
 from django.views.generic import TemplateView, View
 from django.contrib.auth.models import User
+from student.models.result import DeclareResult
 from django.http import JsonResponse
 from django.urls import reverse_lazy
 from django.core import serializers
 import json
-import requests
 
 from django.contrib import messages
 from student.forms import CreateUserForm
 from student.models.Class import StudentClass
-from student.models.result import DeclareResult
 from student.models.subject import Subject
 from student.models.student import Student
 
@@ -43,12 +45,22 @@ def index(request):
 def registerPage(request):
     form = CreateUserForm()
     if request.method =='POST':
+        email = request.POST['email']
         form = CreateUserForm(request.POST)
         if form.is_valid():
             form.save()
             user= form.cleaned_data.get('username')
-            messages.success(request, 'Account was created for ' + user )
-
+            template = render_to_string('dashboard/email.html',{'username':request.user.username})
+            sent = render_to_string('dashboard/send.html')
+            email = EmailMessage(
+                'Account - E-Mail validation',
+                template,
+                settings.EMAIL_HOST_USER,
+                [email],
+            )
+            email.fail_silently = False
+            email.send()
+            return HttpResponse(sent)
     context = {'form':form}
     return render(request, 'dashboard/register.html', context)
 
@@ -57,6 +69,7 @@ def registerPage(request):
 class DashboardView(LoginRequiredMixin,TemplateView):
     template_name = "dashboard/dashboard.html"
 
+    
     def get_context_data(self, **kwargs):
         context = super(DashboardView, self).get_context_data(**kwargs)
         context['cls'] = StudentClass.objects.count()
@@ -100,8 +113,8 @@ def result(request, pk):
 
 
 class PasswordChangeView(LoginRequiredMixin, PasswordChangeView):
-    success_url = reverse_lazy('dashboard')
-    template_name = 'dashboard/password_change_form.html'
+    success_url = reverse_lazy('dashboard:dashboard')
+    template_name = 'password_change_form.html'
 
     
     def get_context_data(self, **kwargs):
@@ -136,5 +149,3 @@ class pdf(View):
             lst = []
         article_pdf = renderPdf('dashboard/result.html', {'object': query, 'marks':marks})
         return HttpResponse(article_pdf, content_type='application/pdf')
-
-
